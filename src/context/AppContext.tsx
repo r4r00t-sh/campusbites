@@ -104,7 +104,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setOrders(prev => [...prev, order]);
     setNextToken(prev => prev + 1);
     setCart([]);
-    toast.success(`Order placed! Token #${order.token}`);
     return order;
   }, [cart, nextToken, cartTotal]);
 
