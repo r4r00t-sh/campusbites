@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
-import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
+import { Check, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -10,12 +10,63 @@ import StudentLayout from '@/components/StudentLayout';
 export default function CartPage() {
   const { cart, updateCartQuantity, removeFromCart, clearCart, placeOrder, cartTotal } = useApp();
   const [studentName, setStudentName] = useState('');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [countdown, setCountdown] = useState(10);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!showSuccessPopup || !placedOrderId) return;
+
+    if (countdown <= 0) {
+      navigate(`/student/orders?highlight=${placedOrderId}`);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [countdown, showSuccessPopup, placedOrderId, navigate]);
+
+  const goToOrdersNow = () => {
+    if (!placedOrderId) return;
+    navigate(`/student/orders?highlight=${placedOrderId}`);
+  };
+
+  const successPopup = showSuccessPopup ? (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4">
+      <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl">
+        <div className="rounded-t-3xl bg-green-50 px-6 py-7 text-center">
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-green-500 shadow-lg ring-4 ring-green-100">
+            <Check size={48} className="text-white" strokeWidth={3.5} />
+          </div>
+        </div>
+
+        <div className="px-6 pb-6 pt-4 text-center">
+          <h3 className="text-3xl font-display font-bold text-foreground">Payment Successful</h3>
+          <p className="mt-3 text-muted-foreground">
+            Your order has been placed. Redirecting to your orders page in{' '}
+            <span className="font-bold text-green-600">{countdown}s</span>.
+          </p>
+          <Button onClick={goToOrdersNow} className="mt-6 w-full rounded-xl bg-green-500 text-white hover:bg-green-600">
+            Go to Orders Now
+          </Button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   const handlePlaceOrder = () => {
-    if (!studentName.trim()) return;
+    if (!studentName.trim() || isProcessingPayment) return;
+    setIsProcessingPayment(true);
     const order = placeOrder(studentName.trim());
-    navigate(`/student/orders?highlight=${order.id}`);
+    setPlacedOrderId(order.id);
+    setCountdown(10);
+    setShowSuccessPopup(true);
+    setIsProcessingPayment(false);
   };
 
   if (cart.length === 0) {
@@ -31,6 +82,7 @@ export default function CartPage() {
             Browse Menu
           </Button>
         </div>
+        {successPopup}
       </StudentLayout>
     );
   }
@@ -96,14 +148,16 @@ export default function CartPage() {
           />
           <Button
             onClick={handlePlaceOrder}
-            disabled={!studentName.trim()}
+            disabled={!studentName.trim() || isProcessingPayment || showSuccessPopup}
             className="w-full rounded-xl bg-mint text-mint-foreground hover:bg-mint/80 font-bold text-lg py-6"
           >
-            Pay ₹{cartTotal} & Place Order
+            {isProcessingPayment ? 'Processing Payment...' : `Pay ₹${cartTotal} & Place Order`}
           </Button>
           <p className="text-xs text-center text-muted-foreground">Payment will be recorded as Paid</p>
         </div>
       </div>
+
+      {successPopup}
     </StudentLayout>
   );
 }
