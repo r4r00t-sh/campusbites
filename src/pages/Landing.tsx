@@ -13,7 +13,7 @@ export default function Landing() {
         </p>
 
         <div className="flex flex-col gap-3 pt-4">
-          <Link to="/student/menu">
+          <Link to="/auth">
             <Button className="w-full rounded-xl py-6 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/80">
               <GraduationCap className="mr-2" size={22} />
               I'm a Student
@@ -28,7 +28,7 @@ export default function Landing() {
         </div>
 
         <p className="text-xs text-muted-foreground pt-4">
-          No login required · Just order & go
+          Students sign in with admission number · Staff use the dashboard link
         </p>
       </div>
     </div>

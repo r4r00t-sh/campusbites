@@ -1,12 +1,21 @@
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, ClipboardList, History, UtensilsCrossed } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ShoppingCart, ClipboardList, History, LogOut, UtensilsCrossed } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const { cartCount, getCrowdLevel } = useApp();
   const crowd = getCrowdLevel();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/auth', { replace: true });
+  };
 
   const crowdConfig = {
     low: { label: 'Low Crowd', className: 'bg-success/20 text-success-foreground' },
@@ -29,9 +38,24 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           <span className="text-2xl">🍽️</span>
           <h1 className="text-xl font-bold font-display text-foreground">CampusBites</h1>
         </Link>
-        <Badge className={crowdConfig[crowd].className}>
-          {crowdConfig[crowd].label}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="hidden sm:inline-flex max-w-[140px] truncate font-normal">
+            {user?.name}
+          </Badge>
+          <Badge className={crowdConfig[crowd].className}>
+            {crowdConfig[crowd].label}
+          </Badge>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="rounded-xl shrink-0 text-muted-foreground hover:text-foreground"
+            onClick={handleLogout}
+            aria-label="Log out"
+          >
+            <LogOut size={18} />
+          </Button>
+        </div>
       </header>
 
       {/* Content */}

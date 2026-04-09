@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { Check, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import StudentLayout from '@/components/StudentLayout';
 
 export default function CartPage() {
+  const { user } = useAuth();
   const { cart, updateCartQuantity, removeFromCart, clearCart, placeOrder, cartTotal } = useApp();
-  const [studentName, setStudentName] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [countdown, setCountdown] = useState(10);
@@ -60,9 +60,10 @@ export default function CartPage() {
   ) : null;
 
   const handlePlaceOrder = () => {
-    if (!studentName.trim() || isProcessingPayment) return;
+    const name = user?.name?.trim() ?? '';
+    if (!name || isProcessingPayment) return;
     setIsProcessingPayment(true);
-    const order = placeOrder(studentName.trim());
+    const order = placeOrder(name);
     setPlacedOrderId(order.id);
     setCountdown(10);
     setShowSuccessPopup(true);
@@ -139,16 +140,12 @@ export default function CartPage() {
         <Separator />
 
         <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">Your Name</label>
-          <Input
-            placeholder="Enter your name"
-            value={studentName}
-            onChange={e => setStudentName(e.target.value)}
-            className="rounded-xl"
-          />
+          <p className="text-sm text-muted-foreground">
+            Order will be placed for <span className="font-medium text-foreground">{user?.name}</span>
+          </p>
           <Button
             onClick={handlePlaceOrder}
-            disabled={!studentName.trim() || isProcessingPayment || showSuccessPopup}
+            disabled={!user?.name?.trim() || isProcessingPayment || showSuccessPopup}
             className="w-full rounded-xl bg-mint text-mint-foreground hover:bg-mint/80 font-bold text-lg py-6"
           >
             {isProcessingPayment ? 'Processing Payment...' : `Pay ₹${cartTotal} & Place Order`}

@@ -1,15 +1,14 @@
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import StudentLayout from '@/components/StudentLayout';
 
 export default function HistoryPage() {
-  const { orders } = useApp();
-  const completedOrders = orders
-    .filter(o => o.status === 'completed')
-    .sort((a, b) => new Date(b.orderTime).getTime() - new Date(a.orderTime).getTime());
-
-  // Show all orders for history (both active and completed)
-  const allOrders = [...orders].sort((a, b) => new Date(b.orderTime).getTime() - new Date(a.orderTime).getTime());
+  const { user } = useAuth();
+  const { getStudentOrders } = useApp();
+  const allOrders = getStudentOrders(user?.name ?? '').sort(
+    (a, b) => new Date(b.orderTime).getTime() - new Date(a.orderTime).getTime()
+  );
 
   if (allOrders.length === 0) {
     return (

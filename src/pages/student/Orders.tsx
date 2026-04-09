@@ -1,4 +1,5 @@
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { OrderStatus } from '@/types';
 import { Clock, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -15,8 +16,11 @@ const statusConfig: Record<OrderStatus, { label: string; className: string; step
 const steps: OrderStatus[] = ['received', 'preparing', 'ready', 'completed'];
 
 export default function OrdersPage() {
-  const { orders, cancelOrder } = useApp();
-  const activeOrders = orders.filter(o => o.status !== 'completed').sort((a, b) => b.token - a.token);
+  const { user } = useAuth();
+  const { getStudentOrders, cancelOrder } = useApp();
+  const activeOrders = getStudentOrders(user?.name ?? '')
+    .filter(o => o.status !== 'completed')
+    .sort((a, b) => b.token - a.token);
 
   const canCancel = (orderTime: string) => Date.now() - new Date(orderTime).getTime() < 120000;
 
